@@ -47,7 +47,7 @@ The core of HackStreak is its data extraction engine (`ThmProfileScraper`). Sinc
 
 ## Download
 
-Don't want to build it yourself? **[Download the latest .apk from GitHub Releases](https://github.com/YourUsername/HackStreak/releases)**! Just download, install, and you're good to go.
+Don't want to build it yourself? **[Download the latest .apk from GitHub Releases](https://github.com/cybersaad/HackStreak/releases)**! Just download, install, and you're good to go.
 
 ## Installation (For Developers)
 
