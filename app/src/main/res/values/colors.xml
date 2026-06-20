@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="thm_dark_bg">#FF0D1117</color>
+    <color name="thm_card_bg">#FF161B22</color>
+    <color name="thm_green">#FF2ECC40</color>
+    <color name="thm_green_bright">#FF88FF00</color>
+    <color name="thm_orange">#FFFF9800</color>
+    <color name="thm_yellow">#FFFFC107</color>
+    <color name="thm_text_primary">#FFFFFFFF</color>
+    <color name="thm_text_secondary">#FFB0B0B0</color>
+    <color name="thm_accent">#FF1DB954</color>
+    <color name="splash_bg">#FF0D1117</color>
+</resources>

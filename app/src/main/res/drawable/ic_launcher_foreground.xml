@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#2ECC40">
+    <!-- Shield shape -->
+    <path
+        android:fillColor="#2ECC40"
+        android:pathData="M54,20 L30,32 L30,54 C30,70 40,82 54,88 C68,82 78,70 78,54 L78,32 Z"
+        android:fillAlpha="0.2"/>
+    <path
+        android:strokeColor="#2ECC40"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M54,20 L30,32 L30,54 C30,70 40,82 54,88 C68,82 78,70 78,54 L78,32 Z"/>
+    <!-- Fire/streak icon inside -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M54,38 C50,44 46,48 46,54 C46,58.4 49.6,62 54,62 C58.4,62 62,58.4 62,54 C62,48 58,44 54,38Z"/>
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M54,46 C52,50 50,52 50,55 C50,57.2 51.8,59 54,59 C56.2,59 58,57.2 58,55 C58,52 56,50 54,46Z"/>
+    <!-- Terminal icon below -->
+    <path
+        android:fillColor="#2ECC40"
+        android:pathData="M42,66 L66,66 L66,78 L42,78 Z"
+        android:fillAlpha="0.3"/>
+    <path
+        android:strokeColor="#2ECC40"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M42,66 L66,66 L66,78 L42,78 Z"/>
+    <path
+        android:strokeColor="#2ECC40"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M46,70 L50,72 L46,74"/>
+    <path
+        android:strokeColor="#2ECC40"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M52,74 L58,74"/>
+</vector>

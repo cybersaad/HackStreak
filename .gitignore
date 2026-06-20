@@ -1,0 +1,46 @@
+# Gradle files
+.gradle/
+build/
+*/build/
+*/*/build/
+
+# Local configuration file (keys, SDK paths)
+local.properties
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ
+*.iml
+.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+
+# Keystore files (Sensitive!)
+*.jks
+*.keystore
+
+# External native build folder
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Google Services (if used in future)
+google-services.json
+
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# OS-specific files
+Thumbs.db
