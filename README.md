@@ -8,7 +8,7 @@
 ![Glance](https://img.shields.io/badge/Glance-App_Widgets-green.svg?style=for-the-badge&logo=android)
 ![Room](https://img.shields.io/badge/Room-Database-orange.svg?style=for-the-badge)
 
-*Built to solve the frustration of manually checking your TryHackMe profile every day. Created for time saving like this and **Develop with Vibe**.*
+*Built to solve the frustration of manually checking your TryHackMe profile every day. **Track your streak directly from your home screen with a live widget.** Created for time saving like this and **Develop with Vibe**.*
 
 </div>
 
@@ -27,7 +27,7 @@ This application bridges the gap by employing a robust, headless **WebView Scrap
 - **Manual Widget Refresh**: Features a convenient refresh button directly on the widget header to instantly sync your latest profile data in the background without opening the app.
 - **Cloudflare Bypass Engine**: Completely abandons fragile HTTP/OkHttp requests in favor of a silent, background WebView. The app actively polls the DOM via injected JavaScript to bypass Cloudflare's JS-challenge and extract the rendered React data.
 - **Offline Persistence**: Uses **Room Database** and **DataStore** to cache your profile. If you're offline or TryHackMe is down, your widget and app still display your last known stats.
-- **"GitStreak" Style Setup & THM Dashboard**: Features a hyper-clean MVP-style setup flow (Header, Connection Card, Widget Guide) seamlessly paired with a gorgeous TryHackMe dashboard (Circular fire progress rings, M T W T F S S dot indicators, and a 2x2 stats grid).
+- **Style Setup & THM Dashboard**: Features a hyper-clean MVP-style setup flow (Header, Connection Card, Widget Guide) seamlessly paired with a gorgeous TryHackMe dashboard (Circular fire progress rings, M T W T F S S dot indicators, and a 2x2 stats grid).
 
 ## Under the Hood: The Scraper Engine
 
@@ -36,6 +36,14 @@ The core of HackStreak is its data extraction engine (`ThmProfileScraper`). Sinc
 2. **Polling**: An injected JavaScript payload begins polling the DOM, waiting up to 15 seconds for the `__NEXT_DATA__` JSON or the React component tree to fully render.
 3. **Smart Extraction**: Uses a multi-layered fallback strategy (Line-by-line label matching -> Regex -> DOM traversal) to extract stats accurately regardless of minor CSS changes on the site.
 4. **Memory Safe**: The WebView is dynamically created and destroyed to prevent memory leaks in the background.
+
+## Release v1 (current)
+
+- Room migration added (schema bumped to v2) and fallbackToDestructiveMigration removed to preserve user data.
+- Release build minification enabled and a ProGuard rules file added to keep Room entities and @JavascriptInterface bridges.
+- ThmProfileScraper hardened: retries with backoff, logging, safer JS injection handling, and clearer error messages.
+- Removed hardcoded default username resource to avoid exposing personal identifiers.
+- Added a basic unit test and JUnit dependency for simple verification.
 
 ## Tech Stack
 

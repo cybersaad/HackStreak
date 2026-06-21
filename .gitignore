@@ -3,6 +3,7 @@
 build/
 */build/
 */*/build/
+/gradle-wrapper.jar
 
 # Local configuration file (keys, SDK paths)
 local.properties
@@ -13,7 +14,7 @@ local.properties
 # Android Studio captures folder
 captures/
 
-# IntelliJ
+# IntelliJ / Android Studio
 *.iml
 .idea/
 .idea/workspace.xml
@@ -22,10 +23,19 @@ captures/
 .idea/assetWizardSettings.xml
 .idea/dictionaries
 .idea/libraries
+.idea/inspectionProfiles/
+.idea/codeStyles/
+.idea/runConfigurations/
+
+# VSCode
+.vscode/
 
 # Keystore files (Sensitive!)
 *.jks
 *.keystore
+*.pem
+*.p12
+*.pfx
 
 # External native build folder
 .externalNativeBuild/
@@ -33,6 +43,8 @@ captures/
 
 # macOS
 .DS_Store
+*.swp
+*.swo
 
 # Google Services (if used in future)
 google-services.json
@@ -42,8 +54,35 @@ google-services.json
 *.ap_
 *.aab
 
+# Build artifacts
+**/intermediates/
+**/outputs/
+**/bin/
+**/gen/
+**/proguard_logs/
+
+# ProGuard / R8
+**/mapping.txt
+**/seeds.txt
+**/usage.txt
+**/configuration.txt
+
+# Test reports
+**/reports/
+*.xml
+!**/AndroidManifest.xml
+
 # OS-specific files
 Thumbs.db
+*.log
+.env
+.env.local
 
-# APK files
-*.apk
+# Android testing
+androidTest/
+test/
+
+# Lint
+lint-results*.xml
+lint-baseline.xml
+
