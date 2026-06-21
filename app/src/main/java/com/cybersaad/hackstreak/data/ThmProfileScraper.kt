@@ -42,124 +42,152 @@ class ThmProfileScraper(private val context: Context) {
 
     /**
      * Fetches and parses a TryHackMe user's public profile using WebView.
-     * Must be called from a coroutine — it suspends until data is extracted.
+     * Retries on transient failures with exponential backoff.
      */
-    suspend fun scrapeProfile(username: String): Result<ScrapedProfile> =
-        suspendCancellableCoroutine { continuation ->
-            val handler = Handler(Looper.getMainLooper())
-            var webView: WebView? = null
-            var resumed = false
+    suspend fun scrapeProfile(username: String): Result<ScrapedProfile> {
+        var attempt = 0
+        val maxAttempts = 3
+        var lastResult: Result<ScrapedProfile>? = null
 
-            fun finish(result: Result<ScrapedProfile>) {
-                if (resumed) return
-                resumed = true
-                handler.post {
-                    webView?.apply {
-                        stopLoading()
-                        removeJavascriptInterface("HackStreak")
-                        destroy()
+        while (attempt < maxAttempts) {
+            attempt++
+            android.util.Log.d("ThmProfileScraper", "Scrape attempt $attempt for $username")
+            val result = suspendCancellableCoroutine<Result<ScrapedProfile>> { continuation ->
+                val handler = Handler(Looper.getMainLooper())
+                var webView: WebView? = null
+                var resumed = false
+
+                fun finish(result: Result<ScrapedProfile>) {
+                    if (resumed) return
+                    resumed = true
+                    handler.post {
+                        webView?.apply {
+                            stopLoading()
+                            removeJavascriptInterface("HackStreak")
+                            destroy()
+                        }
+                        webView = null
                     }
-                    webView = null
+                    continuation.resume(result)
                 }
-                continuation.resume(result)
-            }
 
-            // Timeout after 30 seconds
-            val timeoutRunnable = Runnable {
-                finish(Result.failure(Exception("Timed out loading profile. Check your connection and try again.")))
-            }
-            handler.postDelayed(timeoutRunnable, 30000)
-
-            continuation.invokeOnCancellation {
-                handler.removeCallbacks(timeoutRunnable)
-                handler.post {
-                    webView?.apply {
-                        stopLoading()
-                        removeJavascriptInterface("HackStreak")
-                        destroy()
-                    }
+                // Timeout after 30 seconds
+                val timeoutRunnable = Runnable {
+                    finish(Result.failure(Exception("Timed out loading profile. Check your connection and try again.")))
                 }
-            }
+                handler.postDelayed(timeoutRunnable, 30000)
 
-            handler.post {
-                @SuppressLint("SetJavaScriptEnabled")
-                val wv = WebView(context).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    settings.loadWithOverviewMode = true
-                    settings.useWideViewPort = true
-                    settings.userAgentString =
-                        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 " +
-                        "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
-                }
-                webView = wv
-
-                // JavaScript bridge to receive extracted data
-                wv.addJavascriptInterface(object {
-                    @JavascriptInterface
-                    fun onDataReceived(jsonStr: String) {
-                        handler.removeCallbacks(timeoutRunnable)
-                        try {
-                            val json = JSONObject(jsonStr)
-                            val error = json.optString("error", "")
-                            if (error.isNotEmpty()) {
-                                finish(Result.failure(Exception(error)))
-                                return
-                            }
-
-                            val streak = json.optInt("streak", 0)
-
-                            // Build estimated weekly activity from streak count.
-                            // This is an approximation — not actual per-day data.
-                            val weeklyActivity = MutableList(7) { false }
-                            for (i in 0 until minOf(streak, 7)) {
-                                weeklyActivity[6 - i] = true // Fill from Sunday backwards
-                            }
-
-                            finish(Result.success(ScrapedProfile(
-                                username = username,
-                                streak = streak,
-                                rank = json.optString("rank", "N/A"),
-                                points = json.optInt("points", 0),
-                                roomsCompleted = json.optInt("rooms", 0),
-                                badges = json.optInt("badges", 0),
-                                avatarUrl = json.optString("avatar", ""),
-                                level = json.optString("level", ""),
-                                weeklyActivity = weeklyActivity
-                            )))
-                        } catch (e: Exception) {
-                            finish(Result.failure(Exception("Failed to parse profile data.")))
+                continuation.invokeOnCancellation {
+                    handler.removeCallbacks(timeoutRunnable)
+                    handler.post {
+                        webView?.apply {
+                            stopLoading()
+                            removeJavascriptInterface("HackStreak")
+                            destroy()
                         }
                     }
-                }, "HackStreak")
+                }
 
-                wv.webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        // Inject the polling extraction script after page loads.
-                        // The script retries every 1s for up to 15 attempts,
-                        // waiting for React to render the profile stats.
-                        handler.postDelayed({
-                            view?.evaluateJavascript(buildExtractionScript(), null)
-                        }, 2000)
+                handler.post {
+                    @SuppressLint("SetJavaScriptEnabled")
+                    val wv = WebView(context).apply {
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        settings.loadWithOverviewMode = true
+                        settings.useWideViewPort = true
+                        settings.userAgentString =
+                            "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 " +
+                            "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
                     }
+                    webView = wv
 
-                    override fun onReceivedError(
-                        view: WebView?, request: WebResourceRequest?, error: WebResourceError?
-                    ) {
-                        if (request?.isForMainFrame == true) {
+                    // JavaScript bridge to receive extracted data
+                    wv.addJavascriptInterface(object {
+                        @JavascriptInterface
+                        fun onDataReceived(jsonStr: String) {
                             handler.removeCallbacks(timeoutRunnable)
-                            finish(Result.failure(
-                                Exception("Network error: ${error?.description ?: "Unknown"}. Check your internet connection.")
-                            ))
+                            try {
+                                val json = JSONObject(jsonStr)
+                                val error = json.optString("error", "")
+                                if (error.isNotEmpty()) {
+                                    finish(Result.failure(Exception(error)))
+                                    return
+                                }
+
+                                val streak = json.optInt("streak", 0)
+
+                                // Build estimated weekly activity from streak count.
+                                // This is an approximation — not actual per-day data.
+                                val weeklyActivity = MutableList(7) { false }
+                                for (i in 0 until minOf(streak, 7)) {
+                                    weeklyActivity[6 - i] = true // Fill from Sunday backwards
+                                }
+
+                                finish(Result.success(ScrapedProfile(
+                                    username = username,
+                                    streak = streak,
+                                    rank = json.optString("rank", "N/A"),
+                                    points = json.optInt("points", 0),
+                                    roomsCompleted = json.optInt("rooms", 0),
+                                    badges = json.optInt("badges", 0),
+                                    avatarUrl = json.optString("avatar", ""),
+                                    level = json.optString("level", ""),
+                                    weeklyActivity = weeklyActivity
+                                )))
+                            } catch (e: Exception) {
+                                finish(Result.failure(Exception("Failed to parse profile data.")))
+                            }
+                        }
+                    }, "HackStreak")
+
+                    wv.webViewClient = object : WebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                            // Inject the polling extraction script after page loads.
+                            // The script retries every 1s for up to 15 attempts,
+                            // waiting for React to render the profile stats.
+                            handler.postDelayed({
+                                try {
+                                    view?.evaluateJavascript(buildExtractionScript(), null)
+                                } catch (e: Exception) {
+                                    handler.removeCallbacks(timeoutRunnable)
+                                    finish(Result.failure(Exception("Failed to inject extraction script.")))
+                                }
+                            }, 2000)
+                        }
+
+                        override fun onReceivedError(
+                            view: WebView?, request: WebResourceRequest?, error: WebResourceError?
+                        ) {
+                            if (request?.isForMainFrame == true) {
+                                handler.removeCallbacks(timeoutRunnable)
+                                finish(Result.failure(
+                                    Exception("Network error: ${error?.description ?: "Unknown"}. Check your internet connection.")
+                                ))
+                            }
                         }
                     }
-                }
 
-                wv.loadUrl("https://tryhackme.com/r/p/$username")
+                    try {
+                        wv.loadUrl("https://tryhackme.com/r/p/$username")
+                    } catch (e: Exception) {
+                        handler.removeCallbacks(timeoutRunnable)
+                        finish(Result.failure(Exception("Failed to load profile page: ${e.message}")))
+                    }
+                }
             }
+
+            if (result.isSuccess) return result
+            lastResult = result
+            val backoff = attempt * 1000L
+            android.util.Log.w("ThmProfileScraper", "Attempt $attempt failed for $username: ${result.exceptionOrNull()?.message}; retrying in ${backoff}ms")
+            try {
+                kotlinx.coroutines.delay(backoff)
+            } catch (_: InterruptedException) { break }
         }
 
+        return lastResult ?: Result.failure(Exception("Unknown error during scraping"))
+    }
     companion object {
         /**
          * JavaScript that polls the rendered DOM for TryHackMe profile stats.

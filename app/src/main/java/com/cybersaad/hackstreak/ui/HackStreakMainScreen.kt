@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cybersaad.hackstreak.HackStreakApp
 import com.cybersaad.hackstreak.ui.theme.*
+import com.cybersaad.hackstreak.formatNumber
 import java.util.Calendar
 
 @Composable
@@ -173,30 +174,12 @@ private fun TopHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(ThmGreen.copy(alpha = 0.15f))
-                    .border(1.dp, ThmGreen, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Filled.Shield,
-                    contentDescription = null,
-                    tint = ThmGreen,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "HackStreak",
-                color = TextPrimary,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(
+            text = "HackStreak",
+            color = TextPrimary,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
         
         IconButton(
             onClick = onEditClick,
@@ -637,9 +620,4 @@ private fun UsernameInputSection(
 
 // ================= HELPERS =================
 
-/** Format numbers with commas for readability (e.g., 1234 -> "1,234") */
-private fun formatNumber(n: Int): String {
-    if (n == 0) return "0"
-    return String.format("%,d", n)
-}
 
